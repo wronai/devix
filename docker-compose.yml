@@ -1,0 +1,31 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  devix:
+    build: .
+    container_name: devix-supervisor
+    volumes:
+      - ..:/workspace
+      - ./logs:/app/logs
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - DISPLAY=${DISPLAY}
+      - WINDSURF_API_KEY=${WINDSURF_API_KEY}
+      - PYTHONUNBUFFERED=1
+    network_mode: host
+    privileged: true
+    command: python supervisor.py --config config.yaml --auto
+    restart: unless-stopped
+  
+  devix-monitor:
+    build: .
+    container_name: devix-monitor
+    volumes:
+      - ..:/workspace
+      - ./logs:/app/logs
+    environment:
+      - PYTHONUNBUFFERED=1
+    network_mode: host
+    command: python -m monitor
+    restart: unless-stopped

@@ -1,0 +1,141 @@
+# devix Configuration
+# Konfiguracja automatycznego systemu rozwoju
+
+# Podstawowe ustawienia
+max_iterations: 50              # Maksymalna liczba iteracji
+iteration_delay: 30             # Opóźnienie między iteracjami (sekundy)
+auto_continue: true             # Automatyczna kontynuacja bez pytania
+log_level: INFO                 # DEBUG, INFO, WARNING, ERROR
+
+# Progi jakościowe
+test_coverage_threshold: 80     # Minimalny % pokrycia testów
+code_quality_threshold: 8.0     # Minimalna ocena jakości kodu (0-10)
+performance_threshold: 1000     # Maksymalny czas odpowiedzi (ms)
+memory_threshold: 500           # Maksymalne zużycie pamięci (MB)
+cpu_threshold: 80              # Maksymalne zużycie CPU (%)
+
+# Komendy projektu
+test_command: pytest            # Komenda do uruchamiania testów
+run_command: python main.py     # Komenda do uruchamiania aplikacji
+docker_compose_file: docker-compose.yml
+makefile_path: Makefile
+
+# Monitorowanie
+monitor_interval: 10            # Interwał monitorowania (sekundy)
+health_endpoint: http://localhost:8000/health
+metrics_endpoint: http://localhost:8000/metrics
+
+# Wzorce błędów do wykrywania
+error_patterns:
+  - error
+  - exception
+  - failed
+  - failure
+  - critical
+  - fatal
+  - traceback
+  - crashed
+  - "can't"
+  - "cannot"
+  - "unable to"
+  - "not found"
+
+# Cele ulepszania
+improvement_goals:
+  add_logging: true             # Dodawanie logowania
+  add_tests: true               # Dodawanie testów
+  add_error_handling: true      # Obsługa błędów
+  add_documentation: true       # Dokumentacja
+  refactor_long_functions: true # Refaktoryzacja długich funkcji
+  add_type_hints: true          # Type hints
+  optimize_performance: true    # Optymalizacja wydajności
+  add_monitoring: true          # Endpoints monitoringu
+  improve_security: true        # Bezpieczeństwo
+
+# Integracja z Windsurf/Claude
+windsurf_integration:
+  use_windsurf_api: false      # Użyj API jeśli dostępne
+  use_gui_automation: true     # Użyj automatyzacji GUI
+  use_cli: false               # Użyj CLI
+  windsurf_path: windsurf      # Ścieżka do Windsurf CLI
+  windsurf_api_url: http://localhost:8080/api
+
+# Integracja z JetBrains (PyCharm, IntelliJ, WebStorm, etc.)
+jetbrains_integration:
+  jetbrains_ide: auto          # auto, pycharm, intellij, webstorm, phpstorm, goland, rider
+  jetbrains_http_port: 63342   # Port HTTP API
+  jetbrains_gateway_port: 63343 # Port Gateway
+  jetbrains_ai_assistant: false # Czy używać AI Assistant (wymaga licencji)
+  use_inspections: true        # Używaj inspekcji IDE
+  use_quick_fixes: true        # Automatycznie aplikuj quick fixes
+  sync_on_save: true           # Synchronizuj przy zapisie pliku
+  profile_code: false          # Profiluj wydajność kodu
+  
+  # Metody komunikacji (priorytet od góry)
+  communication_methods:
+    - http_api               # REST API (wymaga wtyczki)
+    - external_tool          # External Tools
+    - file_watcher          # File Watchers
+    - gui_automation        # GUI Automation
+    - command_line          # Command Line
+  
+  # Skróty klawiszowe (można dostosować)
+  shortcuts:
+    refactor: ['cmd', 'shift', 'alt', 'r']  # Mac
+    refactor_win: ['ctrl', 'shift', 'alt', 'r']  # Windows/Linux
+    analyze: ['alt', 'shift', 'i']
+    format: ['cmd', 'alt', 'l']  # Mac
+    format_win: ['ctrl', 'alt', 'l']  # Windows/Linux
+    quick_fix: ['alt', 'enter']
+    ai_assistant: ['alt', 'shift', 'a']
+  
+  # Inspekcje do uruchomienia
+  inspections:
+    - Default                # Domyślny profil
+    - Project Default        # Profil projektu
+  
+  # Automatyczne akcje
+  auto_actions:
+    fix_imports: true        # Napraw importy
+    optimize_imports: true   # Optymalizuj importy
+    format_code: true        # Formatuj kod
+    fix_typos: true         # Popraw literówki
+    add_docstrings: true    # Dodaj docstringi
+  
+# Automatyzacja GUI
+gui_automation:
+  screenshot_confidence: 0.8    # Pewność rozpoznawania obrazów
+  typing_interval: 0.01        # Interwał pisania (sekundy)
+  action_delay: 0.5            # Opóźnienie między akcjami
+  
+# Opcje zaawansowane
+advanced:
+  parallel_testing: true        # Równoległe testy
+  auto_fix_imports: true       # Automatyczna naprawa importów
+  auto_install_deps: true      # Automatyczna instalacja zależności
+  git_auto_commit: false       # Automatyczne commity
+  backup_before_fix: true      # Backup przed naprawą
+
+---
+# Profile dla różnych typów projektów
+
+profiles:
+  web_app:
+    test_coverage_threshold: 85
+    performance_threshold: 200
+    health_endpoint: http://localhost:8000/health
+    
+  api:
+    test_coverage_threshold: 90
+    performance_threshold: 100
+    health_endpoint: http://localhost:8000/api/health
+    
+  cli_tool:
+    test_coverage_threshold: 80
+    performance_threshold: 5000
+    run_command: python -m myapp
+    
+  data_science:
+    test_coverage_threshold: 70
+    code_quality_threshold: 7.0
+    run_command: jupyter notebook

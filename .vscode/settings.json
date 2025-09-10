@@ -1,0 +1,16 @@
+{
+  "windsurf.autoContinue": true,
+  "windsurf.maxIterations": 50,
+  "windsurf.promptOnError": true,
+  "windsurf.autoFixPatterns": [
+    "error",
+    "failed",
+    "exception",
+    "warning"
+  ],
+  "windsurf.improvementGoals": {
+    "testCoverage": 85,
+    "codeQuality": 8.0,
+    "performanceThreshold": 1000
+  }
+}

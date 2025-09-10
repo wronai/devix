@@ -1,3 +1,17 @@
+id_ed25519
+.idea
+.idea/*.xml
+logs/*
+test-report.json
+vendor
+venv
+test-logs/*.json
+.lock
+.sqlite
+test-screenshots
+comprehensive-visual-test-report.html
+comprehensive-visual-test-suite.php
+test*.txt
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

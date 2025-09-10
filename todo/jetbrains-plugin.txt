@@ -1,0 +1,233 @@
+<!-- devix/jetbrains-plugin/META-INF/plugin.xml -->
+<!-- Wtyczka JetBrains dla lepszej integracji z devix -->
+
+<idea-plugin>
+  <id>com.devix.integration</id>
+  <name>devix Integration</name>
+  <version>1.0.0</version>
+  <vendor email="support@devix.com" url="https://github.com/devix">Tom Sapletta</vendor>
+
+  <description><![CDATA[
+    <h3>devix Integration Plugin</h3>
+    <p>Seamless integration between JetBrains IDEs and devix automatic development system.</p>
+    
+    <h4>Features:</h4>
+    <ul>
+      <li>HTTP API endpoint for devix commands</li>
+      <li>Automatic code fixes and refactoring</li>
+      <li>Real-time synchronization</li>
+      <li>AI-powered suggestions integration</li>
+      <li>Custom inspections for devix</li>
+    </ul>
+    
+    <h4>Supported IDEs:</h4>
+    <ul>
+      <li>PyCharm (Professional & Community)</li>
+      <li>IntelliJ IDEA</li>
+      <li>WebStorm</li>
+      <li>PhpStorm</li>
+      <li>All other JetBrains IDEs</li>
+    </ul>
+  ]]></description>
+
+  <change-notes><![CDATA[
+    <h4>Version 1.0.0</h4>
+    <ul>
+      <li>Initial release</li>
+      <li>HTTP API server on port 63342</li>
+      <li>External tool integration</li>
+      <li>File watcher support</li>
+      <li>Quick fix automation</li>
+    </ul>
+  ]]></change-notes>
+
+  <!-- Compatible with all JetBrains IDEs -->
+  <idea-version since-build="203.0"/>
+
+  <depends>com.intellij.modules.platform</depends>
+  <depends optional="true">com.intellij.modules.python</depends>
+  <depends optional="true">com.intellij.modules.java</depends>
+  <depends optional="true">JavaScript</depends>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <!-- HTTP Server -->
+    <applicationService 
+      serviceImplementation="com.devix.integration.server.devixHttpServer"/>
+    
+    <!-- Project Service -->
+    <projectService 
+      serviceImplementation="com.devix.integration.service.devixProjectService"/>
+    
+    <!-- File Listener -->
+    <fileEditorManagerListener 
+      implementation="com.devix.integration.listener.devixFileListener"/>
+    
+    <!-- Inspection -->
+    <localInspection
+      language="Python"
+      displayName="devix Code Quality"
+      groupName="devix"
+      enabledByDefault="true"
+      level="WARNING"
+      implementationClass="com.devix.integration.inspection.devixInspection"/>
+    
+    <!-- Quick Fix Provider -->
+    <quickFixProvider
+      implementation="com.devix.integration.quickfix.devixQuickFixProvider"/>
+    
+    <!-- Tool Window -->
+    <toolWindow
+      id="devix"
+      anchor="bottom"
+      factoryClass="com.devix.integration.toolwindow.devixToolWindowFactory"
+      icon="/icons/devix.svg"/>
+    
+    <!-- Notification Group -->
+    <notificationGroup
+      id="devix Notifications"
+      displayType="BALLOON"
+      key="devix.notifications"/>
+    
+    <!-- Settings -->
+    <applicationConfigurable
+      parentId="tools"
+      instance="com.devix.integration.settings.devixSettingsConfigurable"
+      id="devix.Settings"
+      displayName="devix"/>
+    
+    <!-- External Tool -->
+    <externalToolsGroup/>
+  </extensions>
+
+  <actions>
+    <!-- Main Menu -->
+    <group id="devix.Menu" text="devix" description="devix actions">
+      <add-to-group group-id="MainMenu" anchor="last"/>
+      
+      <action id="devix.RunAnalysis"
+              class="com.devix.integration.action.RunAnalysisAction"
+              text="Run devix Analysis"
+              description="Analyze code with devix">
+        <keyboard-shortcut keymap="$default" first-keystroke="ctrl alt A"/>
+      </action>
+      
+      <action id="devix.ApplyFixes"
+              class="com.devix.integration.action.ApplyFixesAction"
+              text="Apply devix Fixes"
+              description="Apply automatic fixes from devix">
+        <keyboard-shortcut keymap="$default" first-keystroke="ctrl alt F"/>
+      </action>
+      
+      <action id="devix.Sync"
+              class="com.devix.integration.action.SyncAction"
+              text="Sync with devix"
+              description="Synchronize current state with devix">
+        <keyboard-shortcut keymap="$default" first-keystroke="ctrl alt S"/>
+      </action>
+      
+      <separator/>
+      
+      <action id="devix.ShowReport"
+              class="com.devix.integration.action.ShowReportAction"
+              text="Show devix Report"
+              description="Display devix analysis report"/>
+      
+      <action id="devix.Configure"
+              class="com.devix.integration.action.ConfigureAction"
+              text="Configure devix..."
+              description="Open devix settings"/>
+    </group>
+    
+    <!-- Editor Popup Menu -->
+    <group id="devix.EditorPopup">
+      <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+      <separator/>
+      <reference ref="devix.RunAnalysis"/>
+      <reference ref="devix.ApplyFixes"/>
+    </group>
+    
+    <!-- Code Menu -->
+    <group id="devix.CodeMenu">
+      <add-to-group group-id="CodeMenu" anchor="last"/>
+      <separator/>
+      <reference ref="devix.RunAnalysis"/>
+      <reference ref="devix.ApplyFixes"/>
+    </group>
+  </actions>
+
+  <!-- Python Script Bridge -->
+  <extensions defaultExtensionNs="Pythonid">
+    <pyRemoteProcessStarterManager
+      implementation="com.devix.integration.python.devixPythonBridge"/>
+  </extensions>
+
+  <!-- REST API Endpoints -->
+  <restApiEndpoints>
+    <endpoint path="/api/devix/analyze"
+              handler="com.devix.integration.api.AnalyzeHandler"/>
+    <endpoint path="/api/devix/fix"
+              handler="com.devix.integration.api.FixHandler"/>
+    <endpoint path="/api/devix/refactor"
+              handler="com.devix.integration.api.RefactorHandler"/>
+    <endpoint path="/api/devix/format"
+              handler="com.devix.integration.api.FormatHandler"/>
+    <endpoint path="/api/devix/inspect"
+              handler="com.devix.integration.api.InspectHandler"/>
+    <endpoint path="/api/devix/status"
+              handler="com.devix.integration.api.StatusHandler"/>
+  </restApiEndpoints>
+
+  <!-- File Watchers -->
+  <extensions defaultExtensionNs="com.intellij">
+    <fileWatcher
+      name="devix Python Watcher"
+      fileType="Python"
+      program="$ProjectFileDir$/devix/jetbrains_controller.py"
+      arguments="watch $FilePath$"
+      outputPath="$FileDir$"
+      workingDir="$ProjectFileDir$"/>
+  </extensions>
+
+</idea-plugin>
+
+<!-- ===== devix/jetbrains-plugin/devix.properties =====
+# Plugin configuration
+devix.server.port=63342
+devix.gateway.port=63343
+devix.sync.enabled=true
+devix.sync.interval=5000
+devix.ai.assistant.enabled=false
+devix.inspections.enabled=true
+devix.quick.fixes.enabled=true
+devix.notifications.enabled=true
+devix.debug.mode=false
+
+# ===== devix/jetbrains-plugin/install.sh =====
+#!/bin/bash
+# Instalacja wtyczki devix w JetBrains IDE
+
+echo "🔧 Instalacja wtyczki devix dla JetBrains..."
+
+# Znajdź katalog wtyczek
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    PLUGIN_DIR="$HOME/Library/Application Support/JetBrains/PyCharm*/plugins"
+elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    PLUGIN_DIR="$HOME/.local/share/JetBrains/PyCharm*/plugins"
+elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]]; then
+    PLUGIN_DIR="$APPDATA/JetBrains/PyCharm*/plugins"
+else
+    echo "❌ Nieobsługiwany system operacyjny"
+    exit 1
+fi
+
+# Skopiuj wtyczkę
+mkdir -p "$PLUGIN_DIR/devix"
+cp -r META-INF "$PLUGIN_DIR/devix/"
+cp devix.properties "$PLUGIN_DIR/devix/"
+
+echo "✅ Wtyczka zainstalowana. Restart IDE wymagany."
+echo ""
+echo "Aby aktywować:"
+echo "1. Restart PyCharm/IntelliJ"
+echo "2. Settings → Plugins → Installed → Enable devix"
+echo "3. Restart IDE ponownie"

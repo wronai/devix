@@ -1,0 +1,292 @@
+# devix Makefile
+# Automatyzacja zadań rozwojowych
+
+.PHONY: help install run stop monitor test clean calibrate report docker-run docker-stop
+
+# Domyślny cel
+help:
+	@echo "devix - Automatyczny System Rozwoju"
+	@echo ""
+	@echo "Dostępne komendy:"
+	@echo "  make install      - Instalacja zależności"
+	@echo "  make run         - Uruchom devix supervisor"
+	@echo "  make run-auto    - Uruchom w trybie fully automated"
+	@echo "  make run-manual  - Uruchom w trybie manual"
+	@echo "  make monitor     - Tylko monitoruj (bez naprawiania)"
+	@echo "  make test        - Uruchom testy devix"
+	@echo "  make calibrate   - Kalibruj GUI automation"
+	@echo "  make report      - Generuj raport z logów"
+	@echo "  make clean       - Wyczyść logi i cache"
+	@echo "  make docker-run  - Uruchom w Docker"
+	@echo "  make docker-stop - Zatrzymaj Docker"
+	@echo ""
+	@echo "Przykład użycia:"
+	@echo "  cd twoj-projekt/"
+	@echo "  make -C devix/ run"
+
+# Instalacja zależności
+install:
+	@echo "📦 Instalowanie zależności..."
+	pip install -r requirements.txt
+	@echo "✅ Zależności zainstalowane"
+
+# Uruchom supervisor
+run:
+	@echo "🚀 Uruchamianie devix Supervisor..."
+	@echo "📁 Projekt: $$(pwd)/.."
+	cd .. && python devix/supervisor.py --config devix/config.yaml
+
+# Tryb fully automated
+run-auto:
+	@echo "🤖 Uruchamianie w trybie FULL AUTO..."
+	cd .. && python devix/supervisor.py --config devix/config.yaml --auto --max-iterations 100
+
+# Tryb manual
+run-manual:
+	@echo "👤 Uruchamianie w trybie MANUAL..."
+	cd .. && python devix/supervisor.py --config devix/config.yaml --max-iterations 10
+
+# Tylko monitoring
+monitor:
+	@echo "👁️ Uruchamianie trybu MONITOR ONLY..."
+	cd .. && python -c "from devix.monitor import ApplicationMonitor; from devix.config import load_config; import json; m = ApplicationMonitor('.', load_config('devix/config.yaml')); issues, metrics = m.check_all(); print(json.dumps({'issues': issues, 'metrics': metrics}, indent=2))"
+
+# Uruchom testy devix
+test:
+	@echo "🧪 Testowanie devix..."
+	pytest tests/ -v --cov=. --cov-report=term
+
+# Kalibracja GUI
+calibrate:
+	@echo "🎯 Kalibracja GUI automation..."
+	python windsurf_controller.py calibrate
+
+# Generuj raport
+report:
+	@echo "📊 Generowanie raportu..."
+	@python -c "import json; from pathlib import Path; \
+		logs = sorted(Path('logs').glob('report_*.json')); \
+		if logs: \
+			with open(logs[-1]) as f: data = json.load(f); \
+			print('📊 OSTATNI RAPORT:'); \
+			print(json.dumps(data, indent=2)); \
+		else: print('Brak raportów')"
+
+# Wyczyść logi i cache
+clean:
+	@echo "🧹 Czyszczenie..."
+	rm -rf logs/*.log logs/*.txt logs/*.json
+	rm -rf __pycache__ */__pycache__
+	rm -rf .pytest_cache
+	rm -rf ../.pytest_cache ../htmlcov ../coverage.json ../test-report.json
+	@echo "✅ Wyczyszczone"
+
+# Docker commands
+docker-build:
+	@echo "🐳 Budowanie obrazu Docker..."
+	docker build -t devix:latest .
+
+docker-run: docker-build
+	@echo "🐳 Uruchamianie w Docker..."
+	docker-compose up -d
+
+docker-stop:
+	@echo "🐳 Zatrzymywanie Docker..."
+	docker-compose down
+
+docker-logs:
+	@echo "📜 Logi Docker..."
+	docker-compose logs -f
+
+# Watch mode - automatyczne uruchamianie przy zmianach
+watch:
+	@echo "👀 Watch mode - monitorowanie zmian..."
+	@while true; do \
+		echo "Czekam na zmiany w projekcie..."; \
+		inotifywait -r -e modify,create,delete ../src ../tests 2>/dev/null || fswatch -o ../src ../tests; \
+		echo "Wykryto zmiany, uruchamiam devix..."; \
+		make run; \
+		sleep 5; \
+	done
+
+# Tryb ciągłej poprawy
+continuous:
+	@echo "♾️ Tryb ciągłej poprawy..."
+	@while true; do \
+		make run; \
+		if [ $$? -eq 0 ]; then \
+			echo "✅ Cel osiągnięty!"; \
+			break; \
+		fi; \
+		echo "⏳ Czekam 60 sekund przed kolejną próbą..."; \
+		sleep 60; \
+	done
+
+# Quick start dla nowego projektu
+init-project:
+	@echo "🎯 Inicjalizacja devix dla projektu..."
+	@if [ ! -f ../requirements.txt ]; then \
+		echo "Tworzę requirements.txt..."; \
+		echo "pytest>=7.0.0\npytest-cov>=3.0.0\npylint>=2.0.0\nflake8>=4.0.0" > ../requirements.txt; \
+	fi
+	@if [ ! -f ../Makefile ]; then \
+		echo "Tworzę podstawowy Makefile..."; \
+		echo "test:\n\tpytest\n\nrun:\n\tpython main.py" > ../Makefile; \
+	fi
+	@if [ ! -d ../tests ]; then \
+		echo "Tworzę folder tests..."; \
+		mkdir -p ../tests; \
+		echo "def test_placeholder():\n    assert True" > ../tests/test_basic.py; \
+	fi
+	@echo "✅ Projekt zainicjalizowany"
+
+# Status projektu
+status:
+	@echo "📊 Status projektu:"
+	@echo "-------------------"
+	@if [ -f ../requirements.txt ]; then echo "✅ requirements.txt"; else echo "❌ requirements.txt"; fi
+	@if [ -f ../Makefile ]; then echo "✅ Makefile"; else echo "❌ Makefile"; fi
+	@if [ -d ../tests ]; then echo "✅ tests/"; else echo "❌ tests/"; fi
+	@if [ -f ../README.md ]; then echo "✅ README.md"; else echo "❌ README.md"; fi
+	@if [ -f ../.gitignore ]; then echo "✅ .gitignore"; else echo "❌ .gitignore"; fi
+	@echo ""
+	@echo "Ostatnie logi:"
+	@ls -la logs/*.log 2>/dev/null | tail -5 || echo "Brak logów"
+
+# ========== JETBRAINS INTEGRATION ==========
+
+# Konfiguracja JetBrains
+jetbrains-setup:
+	@echo "🔧 Konfiguracja integracji JetBrains..."
+	@echo "Wykrywanie zainstalowanych IDE..."
+	@python jetbrains_controller.py test
+	@echo ""
+	@echo "Wybierz IDE:"
+	@echo "  1) PyCharm"
+	@echo "  2) IntelliJ IDEA"
+	@echo "  3) WebStorm"
+	@echo "  4) Auto-detect"
+	@read -p "Wybór [1-4]: " choice; \
+	case $choice in \
+		1) echo "ide_type: pycharm" >> config.yaml ;; \
+		2) echo "ide_type: intellij" >> config.yaml ;; \
+		3) echo "ide_type: webstorm" >> config.yaml ;; \
+		*) echo "ide_type: auto" >> config.yaml ;; \
+	esac
+	@echo "✅ Konfiguracja zapisana"
+
+# Test połączenia z JetBrains IDE
+jetbrains-test:
+	@echo "🧪 Testowanie połączenia z JetBrains IDE..."
+	@python jetbrains_controller.py test
+
+# Inspekcja kodu przez IDE
+jetbrains-inspect:
+	@echo "🔍 Uruchamianie inspekcji JetBrains..."
+	@python jetbrains_controller.py inspect
+
+# Synchronizacja z IDE
+jetbrains-sync:
+	@echo "🔄 Włączanie synchronizacji z JetBrains IDE..."
+	@python jetbrains_controller.py sync
+	@echo "✅ Synchronizacja włączona"
+
+# Kalibracja GUI dla JetBrains
+jetbrains-calibrate:
+	@echo "🎯 Kalibracja GUI dla JetBrains IDE..."
+	@python jetbrains_controller.py calibrate
+
+# Uruchom z PyCharm
+pycharm:
+	@echo "🐍 Uruchamianie devix z PyCharm..."
+	@echo "ide_type: pycharm" > config_override.yaml
+	@cat config.yaml >> config_override.yaml
+	cd .. && python devix/supervisor.py --config devix/config_override.yaml --auto
+
+# Uruchom z IntelliJ
+intellij:
+	@echo "☕ Uruchamianie devix z IntelliJ IDEA..."
+	@echo "ide_type: intellij" > config_override.yaml
+	@cat config.yaml >> config_override.yaml
+	cd .. && python devix/supervisor.py --config devix/config_override.yaml --auto
+
+# Uruchom z WebStorm
+webstorm:
+	@echo "🌐 Uruchamianie devix z WebStorm..."
+	@echo "ide_type: webstorm" > config_override.yaml
+	@cat config.yaml >> config_override.yaml
+	cd .. && python devix/supervisor.py --config devix/config_override.yaml --auto
+
+# Uruchom z oboma IDE (JetBrains + Windsurf)
+run-both:
+	@echo "🚀 Uruchamianie devix z JetBrains + Windsurf..."
+	@echo "ide_type: both" > config_override.yaml
+	@cat config.yaml >> config_override.yaml
+	cd .. && python devix/supervisor.py --config devix/config_override.yaml --auto
+
+# Profile kod w PyCharm
+profile:
+	@echo "📊 Profilowanie kodu w PyCharm..."
+	@python -c "from jetbrains_controller import PyCharmPlugin; p = PyCharmPlugin({}); p.profile_code()"
+
+# Raport JetBrains
+report-jetbrains:
+	@echo "📊 Raport integracji JetBrains..."
+	@python -c "from jetbrains_controller import get_jetbrains_controller; \
+		import json; \
+		c = get_jetbrains_controller({'jetbrains_ide': 'auto'}); \
+		results = c.run_inspection(); \
+		print('Inspection Results:'); \
+		print(json.dumps(results, indent=2))"
+
+# Watch mode z JetBrains
+watch-jetbrains:
+	@echo "👀 Watch mode z JetBrains IDE..."
+	@while true; do \
+		python jetbrains_controller.py sync; \
+		sleep 5; \
+		make jetbrains-inspect; \
+		if [ $? -ne 0 ]; then \
+			make run-both; \
+		fi; \
+		sleep 30; \
+	done
+
+# Status JetBrains
+status-jetbrains:
+	@echo "📊 Status integracji JetBrains:"
+	@echo "================================"
+	@python -c "from jetbrains_controller import JetBrainsController; \
+		c = JetBrainsController({'jetbrains_ide': 'auto'}); \
+		print(f'IDE Type: {c.ide_type}'); \
+		print(f'IDE Path: {c.ide_path}'); \
+		print(f'Config Dir: {c.jetbrains_config_dir}'); \
+		import psutil; \
+		for p in psutil.process_iter(['name']): \
+			if 'pycharm' in p.info['name'].lower() or 'idea' in p.info['name'].lower(): \
+				print(f'✅ {p.info[\"name\"]} is running')"
+
+# Validate z JetBrains przed commitem
+validate-jetbrains:
+	@echo "✅ Walidacja kodu przez JetBrains..."
+	@make jetbrains-inspect
+	@python -c "import json; \
+		results = json.load(open('/tmp/inspection_results.json', 'r')); \
+		errors = len(results.get('errors', [])); \
+		if errors > 0: \
+			print(f'❌ Found {errors} errors!'); \
+			exit(1); \
+		else: \
+			print('✅ No errors found')"
+
+# Optymalizacja nocna z JetBrains
+optimize-jetbrains:
+	@echo "🌙 Nocna optymalizacja z JetBrains..."
+	@echo "ide_type: both" > config_night.yaml
+	@echo "max_iterations: 200" >> config_night.yaml
+	@echo "jetbrains_integration:" >> config_night.yaml
+	@echo "  profile_code: true" >> config_night.yaml
+	@echo "  use_inspections: true" >> config_night.yaml
+	@echo "  use_quick_fixes: true" >> config_night.yaml
+	@cat config.yaml >> config_night.yaml
+	cd .. && nohup python devix/supervisor.py --config devix/config_night.yaml --auto &

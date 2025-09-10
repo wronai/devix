@@ -1,0 +1,29 @@
+# Devix ignore patterns
+# Files and directories to exclude from analysis
+
+# Python bytecode
+*.pyc
+*.pyo
+__pycache__/
+*.egg-info/
+
+# Build artifacts
+build/
+.dist/
+*.egg
+
+# Virtual environments
+venv/
+.env/
+
+# Version control
+.git/
+.gitignore
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs and temporary files
+*.log
+*.tmp
