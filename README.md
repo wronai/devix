@@ -287,7 +287,71 @@ devix analyze . --config ./my-config.yaml
 
 ## 🏗️ Architecture
 
+### High-Level Architecture
+
+This diagram illustrates the main components of the Devix platform and their interactions:
+
+```mermaid
+graph TD
+    subgraph User Interface
+        CLI[CLI]
+    end
+
+    subgraph Core System
+        Orchestrator(DevixOrchestrator)
+        ConfigManager[ConfigManager]
+    end
+
+    subgraph Analyzers
+        ProjectScanner[ProjectScanner]
+        SecurityAnalyzer[SecurityAnalyzer]
+        QualityAnalyzer[QualityAnalyzer]
+        TestAnalyzer[TestAnalyzer]
+        PerformanceAnalyzer[PerformanceAnalyzer]
+    end
+
+    subgraph Reporting
+        ReportGenerator[EnhancedReportGenerator]
+        MarkdownFormatter[MarkdownFormatter]
+        TextFormatter[TextFormatter]
+    end
+
+    CLI --> Orchestrator
+    Orchestrator --> ConfigManager
+    Orchestrator --> ProjectScanner
+    Orchestrator --> SecurityAnalyzer
+    Orchestrator --> QualityAnalyzer
+    Orchestrator --> TestAnalyzer
+    Orchestrator --> PerformanceAnalyzer
+    Orchestrator --> ReportGenerator
+    ReportGenerator --> MarkdownFormatter
+    ReportGenerator --> TextFormatter
+```
+
+### Workflow Sequence Diagram
+
+This diagram shows the sequence of operations during a typical analysis run:
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant CLI
+    participant DevixOrchestrator
+    participant Analyzers
+    participant ReportGenerator
+
+    User->>CLI: devix analyze .
+    CLI->>DevixOrchestrator: run_analysis()
+    DevixOrchestrator->>Analyzers: analyze() in parallel
+    Analyzers-->>DevixOrchestrator: Analysis results
+    DevixOrchestrator->>ReportGenerator: generate_reports()
+    ReportGenerator-->>DevixOrchestrator: Report files
+    DevixOrchestrator-->>CLI: Display summary
+    CLI-->>User: Output summary and report paths
+```
+
 ### Module Structure
+
 ```
 devix/
 ├── src/devix/

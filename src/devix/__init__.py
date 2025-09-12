@@ -5,7 +5,7 @@ A comprehensive system for automated code analysis, testing, and repair
 with enhanced reporting capabilities and modular architecture.
 """
 
-__version__ = "2.1.7"
+__version__ = "2.1.8"
 __author__ = "Tom Sapletta"
 __email__ = "devix@info@softreck.dev"
 

@@ -132,7 +132,7 @@ def test_analyzers():
                 print(f"  ❌ {analyzer_name} failed: {e}")
         
         print(f"✅ {successful_analyzers}/{len(analyzers_to_test)} analyzers tested successfully")
-        return successful_analyzers > 0
+        assert successful_analyzers > 0
         
     except Exception as e:
         print(f"❌ Analyzer test failed: {e}")
@@ -265,18 +265,29 @@ def test_orchestrator_setup_validation():
         return False
 
 def test_orchestrator_quick_analysis():
-    """Test the orchestrator's quick analysis functionality."""
+    """Test the orchestrator's quick analysis functionality on a small project."""
     print("\n🎭 Testing orchestrator quick analysis...")
     try:
         from devix.core import DevixOrchestrator
-        test_project_path = str(Path(__file__).parent.parent)
-        orchestrator = DevixOrchestrator(test_project_path)
-        print("  Running quick analysis test...")
-        try:
-            quick_results = orchestrator.run_quick_analysis()
-            print(f"✅ Quick analysis completed: {len(quick_results)} analyzer results")
-        except Exception as e:
-            print(f"⚠️  Quick analysis failed (expected in some environments): {e}")
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # Create a minimal project for quick analysis
+            test_project = Path(temp_dir) / "quick_test_project"
+            test_project.mkdir()
+            (test_project / "main.py").write_text("import os\nprint('hello')")
+
+            orchestrator = DevixOrchestrator(str(test_project))
+            print("  Running quick analysis on temporary project...")
+            
+            try:
+                quick_results = orchestrator.run_quick_analysis()
+                print(f"✅ Quick analysis completed: {len(quick_results)} analyzer results")
+                # We expect project_scanner and security results
+                assert 'project_scanner' in quick_results
+                assert 'security' in quick_results
+            except Exception as e:
+                print(f"⚠️  Quick analysis failed unexpectedly: {e}")
+                # In this controlled environment, it should not fail.
+                return False
         assert True
     except Exception as e:
         print(f"❌ Orchestrator quick analysis failed: {e}")
