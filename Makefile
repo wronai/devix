@@ -20,8 +20,11 @@ help:
 	@echo "📦 Package Management:"
 	@echo "  make install     - Install dependencies with UV"
 	@echo "  make build       - Build the package"
-	@echo "  make publish     - Publish to PyPI"
+	@echo "  make publish     - Publish to PyPI (auto-bumps version)"
+	@echo "  make publish-test - Publish to Test PyPI (auto-bumps version)"
 	@echo "  make version     - Show current version"
+	@echo "  make version-bump VERSION=x.y.z - Bump to specific version"
+	@echo "  make version-bump-auto - Auto-increment patch version"
 	@echo ""
 	@echo "🧪 Development & Testing:"
 	@echo "  make test        - Run all tests"
@@ -160,14 +163,31 @@ version-bump:
 		exit 1; \
 	fi
 	@sed -i 's/__version__ = "[^"]*"/__version__ = "$(VERSION)"/' $(VERSION_FILE)
-	@echo "✅ Version bumped to $(VERSION)"
+	@sed -i 's/version = "[^"]*"/version = "$(VERSION)"/' pyproject.toml
+	@echo "✅ Version bumped to $(VERSION) in both files"
+
+version-bump-auto:
+	@echo "🔢 Auto-bumping version..."
+	@CURRENT_VERSION=$$(grep "__version__" $(VERSION_FILE) | sed 's/.*= *"\([^"]*\)".*/\1/'); \
+	echo "📋 Current version: $$CURRENT_VERSION"; \
+	NEW_VERSION=$$(echo $$CURRENT_VERSION | awk -F. '{$$NF=$$NF+1; print $$1"."$$2"."$$NF}'); \
+	echo "📈 New version: $$NEW_VERSION"; \
+	sed -i 's/__version__ = "[^"]*"/__version__ = "'"$$NEW_VERSION"'"/' $(VERSION_FILE); \
+	sed -i 's/version = "[^"]*"/version = "'"$$NEW_VERSION"'"/' pyproject.toml; \
+	echo "✅ Version auto-bumped to $$NEW_VERSION in both files"
 
 # Publishing
-publish: build
+publish:
 	@echo "📤 Publishing to PyPI..."
+	@echo "🧹 Cleaning previous builds..."
+	@make clean > /dev/null 2>&1 || true
 	@if [ -n "$(VERSION)" ]; then \
 		make version-bump VERSION=$(VERSION); \
+	else \
+		make version-bump-auto; \
 	fi
+	@echo "🏗️ Building package with new version..."
+	@make build
 	@if false; then \
 		echo "Using UV for publishing..."; \
 		$(UV) publish; \
@@ -178,11 +198,17 @@ publish: build
 	fi
 	@echo "✅ Package published successfully"
 
-publish-test: build  
+publish-test: 
 	@echo "📤 Publishing to Test PyPI..."
+	@echo "🧹 Cleaning previous builds..."
+	@make clean > /dev/null 2>&1 || true
 	@if [ -n "$(VERSION)" ]; then \
 		make version-bump VERSION=$(VERSION); \
+	else \
+		make version-bump-auto; \
 	fi
+	@echo "🏗️ Building package with new version..."
+	@make build
 	@if false; then \
 		echo "Using UV for publishing to Test PyPI..."; \
 		$(UV) publish --repository testpypi; \

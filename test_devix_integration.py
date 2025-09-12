@@ -197,53 +197,89 @@ def test_reporting():
         traceback.print_exc()
         return False
 
-def test_orchestrator():
-    """Test the main orchestrator functionality."""
-    print("\n🎭 Testing orchestrator functionality...")
-    
+def test_orchestrator_initialization():
+    """Test that the orchestrator can be initialized."""
+    print("\n🎭 Testing orchestrator initialization...")
     try:
         from devix.core import DevixOrchestrator
-        
-        # Use current directory as test project
         test_project_path = str(Path(__file__).parent.parent)
-        
-        # Initialize orchestrator
         orchestrator = DevixOrchestrator(test_project_path)
+        assert orchestrator is not None
         print("✅ Orchestrator initialized successfully")
-        
-        # Test configuration access
+        return True
+    except Exception as e:
+        print(f"❌ Orchestrator initialization failed: {e}")
+        traceback.print_exc()
+        return False
+
+def test_orchestrator_config_loading():
+    """Test that the orchestrator loads its configuration."""
+    print("\n🎭 Testing orchestrator configuration loading...")
+    try:
+        from devix.core import DevixOrchestrator
+        test_project_path = str(Path(__file__).parent.parent)
+        orchestrator = DevixOrchestrator(test_project_path)
         settings = orchestrator.settings
-        if not hasattr(settings, 'enabled_analyzers'):
-            raise AttributeError("Settings missing enabled_analyzers")
+        assert hasattr(settings, 'enabled_analyzers')
         print(f"✅ Orchestrator configuration loaded: {len(settings.enabled_analyzers)} analyzers enabled")
-        
-        # Test analyzer initialization
+        return True
+    except Exception as e:
+        print(f"❌ Orchestrator config loading failed: {e}")
+        traceback.print_exc()
+        return False
+
+def test_orchestrator_analyzer_availability():
+    """Test that the orchestrator finds available analyzers."""
+    print("\n🎭 Testing orchestrator analyzer availability...")
+    try:
+        from devix.core import DevixOrchestrator
+        test_project_path = str(Path(__file__).parent.parent)
+        orchestrator = DevixOrchestrator(test_project_path)
         analyzers = orchestrator.get_available_analyzers()
-        if not analyzers:
-            raise ValueError("No analyzers available")
+        assert analyzers
         print(f"✅ Analyzers available: {', '.join(analyzers.keys())}")
-        
-        # Test setup validation
+        return True
+    except Exception as e:
+        print(f"❌ Orchestrator analyzer availability test failed: {e}")
+        traceback.print_exc()
+        return False
+
+def test_orchestrator_setup_validation():
+    """Test the orchestrator's setup validation."""
+    print("\n🎭 Testing orchestrator setup validation...")
+    try:
+        from devix.core import DevixOrchestrator
+        test_project_path = str(Path(__file__).parent.parent)
+        orchestrator = DevixOrchestrator(test_project_path)
         validation_issues = orchestrator.validate_setup()
         if validation_issues:
             print(f"⚠️  Setup validation issues: {len(validation_issues)}")
-            for issue in validation_issues[:3]:  # Show first 3 issues
+            for issue in validation_issues[:3]:
                 print(f"   - {issue}")
         else:
             print("✅ Setup validation passed")
-        
-        # Test quick analysis (safer than full analysis)
+        return True
+    except Exception as e:
+        print(f"❌ Orchestrator setup validation failed: {e}")
+        traceback.print_exc()
+        return False
+
+def test_orchestrator_quick_analysis():
+    """Test the orchestrator's quick analysis functionality."""
+    print("\n🎭 Testing orchestrator quick analysis...")
+    try:
+        from devix.core import DevixOrchestrator
+        test_project_path = str(Path(__file__).parent.parent)
+        orchestrator = DevixOrchestrator(test_project_path)
         print("  Running quick analysis test...")
         try:
             quick_results = orchestrator.run_quick_analysis()
             print(f"✅ Quick analysis completed: {len(quick_results)} analyzer results")
         except Exception as e:
             print(f"⚠️  Quick analysis failed (expected in some environments): {e}")
-        
         return True
-        
     except Exception as e:
-        print(f"❌ Orchestrator test failed: {e}")
+        print(f"❌ Orchestrator quick analysis failed: {e}")
         traceback.print_exc()
         return False
 
@@ -368,7 +404,11 @@ def main():
         ("Configuration Management", test_configuration),
         ("Analyzer Functionality", test_analyzers),
         ("Reporting System", test_reporting),
-        ("Orchestrator", test_orchestrator),
+        ("Orchestrator Initialization", test_orchestrator_initialization),
+        ("Orchestrator Config Loading", test_orchestrator_config_loading),
+        ("Orchestrator Analyzer Availability", test_orchestrator_analyzer_availability),
+        ("Orchestrator Setup Validation", test_orchestrator_setup_validation),
+        ("Orchestrator Quick Analysis", test_orchestrator_quick_analysis),
         ("CLI Interface", test_cli),
         ("End-to-End Workflow", test_end_to_end)
     ]

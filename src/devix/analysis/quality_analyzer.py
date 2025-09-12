@@ -157,7 +157,7 @@ class QualityAnalyzer(BaseAnalyzer):
                     
             # Extract score from stderr
             import re
-            score_match = re.search(r'Your code has been rated at ([\d\.]+)/10', proc_result.stderr)
+            score_match = re.search(r'Your code has been rated at ([\d.]+)/10', proc_result.stderr)
             if score_match:
                 result["score"] = float(score_match.group(1))
                 

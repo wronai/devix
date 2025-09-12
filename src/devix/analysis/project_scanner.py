@@ -177,11 +177,15 @@ class ProjectScanner(BaseAnalyzer):
                     return True
                     
                 for item_name, item_info in directory_items.items():
-                    if not item_info.get("ignored", False):
-                        return False
-                    if item_info.get("type") == "directory" and "items" in item_info:
-                        if not _all_contents_ignored(item_info["items"]):
+                    if isinstance(item_info, dict):
+                        if not item_info.get("ignored", False):
                             return False
+                        if item_info.get("type") == "directory" and "items" in item_info:
+                            if not _all_contents_ignored(item_info["items"]):
+                                return False
+                    # If item_info is not a dict, consider it not ignored
+                    else:
+                        return False
                 return True
             
             for i, (name, info) in enumerate(item_list):
@@ -189,31 +193,35 @@ class ProjectScanner(BaseAnalyzer):
                 current_prefix = "└── " if is_last else "├── "
                 
                 # Add ignore indicator
-                ignored = info.get("ignored", False)
-                ignore_marker = " 🚫" if ignored and show_ignored else ""
-                
-                if info.get("type") == "directory":
-                    # Check if all contents are ignored
-                    all_ignored = ignored and "items" in info and _all_contents_ignored(info["items"])
+                if isinstance(info, dict):
+                    ignored = info.get("ignored", False)
+                    ignore_marker = " 🚫" if ignored and show_ignored else ""
                     
-                    if all_ignored and show_ignored:
-                        # Collapse directory - show only the top-level folder with 🚫
-                        lines.append(f"{prefix}{current_prefix}{name}/ 🚫 (all contents ignored)")
+                    if info.get("type") == "directory":
+                        # Check if all contents are ignored
+                        all_ignored = ignored and "items" in info and _all_contents_ignored(info["items"])
+                        
+                        if all_ignored and show_ignored:
+                            # Collapse directory - show only the top-level folder with 🚫
+                            lines.append(f"{prefix}{current_prefix}{name}/ 🚫 (all contents ignored)")
+                        else:
+                            # Show directory normally
+                            lines.append(f"{prefix}{current_prefix}{name}/{ignore_marker}")
+                            next_prefix = prefix + ("    " if is_last else "│   ")
+                            if "items" in info:
+                                lines.extend(build_tree_lines(info["items"], next_prefix, show_ignored))
                     else:
-                        # Show directory normally
-                        lines.append(f"{prefix}{current_prefix}{name}/{ignore_marker}")
-                        next_prefix = prefix + ("    " if is_last else "│   ")
-                        if "items" in info:
-                            lines.extend(build_tree_lines(info["items"], next_prefix, show_ignored))
+                        size_info = ""
+                        if "size" in info:
+                            size = info["size"]
+                            if size > 1024 * 1024:
+                                size_info = f" ({size // (1024*1024)}MB)"
+                            elif size > 1024:
+                                size_info = f" ({size // 1024}KB)"
+                        lines.append(f"{prefix}{current_prefix}{name}{size_info}{ignore_marker}")
                 else:
-                    size_info = ""
-                    if "size" in info:
-                        size = info["size"]
-                        if size > 1024 * 1024:
-                            size_info = f" ({size // (1024*1024)}MB)"
-                        elif size > 1024:
-                            size_info = f" ({size // 1024}KB)"
-                    lines.append(f"{prefix}{current_prefix}{name}{size_info}{ignore_marker}")
+                    # Handle case where info is not a dictionary (e.g., error message)
+                    lines.append(f"{prefix}{current_prefix}{name} (error: {info})")
                     
             return lines
             
