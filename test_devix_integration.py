@@ -43,7 +43,7 @@ def test_imports():
         from devix.cli import main, DevixCLI
         print("✅ CLI modules imported successfully")
         
-        return True
+        assert True
         
     except Exception as e:
         print(f"❌ Import failed: {e}")
@@ -87,7 +87,7 @@ def test_configuration():
             else:
                 print("✅ Configuration validation passed")
         
-        return True
+        assert True
         
     except Exception as e:
         print(f"❌ Configuration test failed: {e}")
@@ -190,7 +190,7 @@ def test_reporting():
             saved_files = report_generator.save_reports(sample_results, Path(temp_dir))
             print(f"✅ Reports saved: {len(saved_files)} files")
         
-        return True
+        assert True
         
     except Exception as e:
         print(f"❌ Reporting test failed: {e}")
@@ -206,7 +206,7 @@ def test_orchestrator_initialization():
         orchestrator = DevixOrchestrator(test_project_path)
         assert orchestrator is not None
         print("✅ Orchestrator initialized successfully")
-        return True
+        assert True
     except Exception as e:
         print(f"❌ Orchestrator initialization failed: {e}")
         traceback.print_exc()
@@ -222,7 +222,7 @@ def test_orchestrator_config_loading():
         settings = orchestrator.settings
         assert hasattr(settings, 'enabled_analyzers')
         print(f"✅ Orchestrator configuration loaded: {len(settings.enabled_analyzers)} analyzers enabled")
-        return True
+        assert True
     except Exception as e:
         print(f"❌ Orchestrator config loading failed: {e}")
         traceback.print_exc()
@@ -238,7 +238,7 @@ def test_orchestrator_analyzer_availability():
         analyzers = orchestrator.get_available_analyzers()
         assert analyzers
         print(f"✅ Analyzers available: {', '.join(analyzers.keys())}")
-        return True
+        assert True
     except Exception as e:
         print(f"❌ Orchestrator analyzer availability test failed: {e}")
         traceback.print_exc()
@@ -258,7 +258,7 @@ def test_orchestrator_setup_validation():
                 print(f"   - {issue}")
         else:
             print("✅ Setup validation passed")
-        return True
+        assert True
     except Exception as e:
         print(f"❌ Orchestrator setup validation failed: {e}")
         traceback.print_exc()
@@ -277,7 +277,7 @@ def test_orchestrator_quick_analysis():
             print(f"✅ Quick analysis completed: {len(quick_results)} analyzer results")
         except Exception as e:
             print(f"⚠️  Quick analysis failed (expected in some environments): {e}")
-        return True
+        assert True
     except Exception as e:
         print(f"❌ Orchestrator quick analysis failed: {e}")
         traceback.print_exc()
@@ -311,7 +311,7 @@ def test_cli():
             # This is expected for --help and similar arguments
             print("✅ CLI argument parsing handled correctly")
         
-        return True
+        assert True
         
     except Exception as e:
         print(f"❌ CLI test failed: {e}")
@@ -382,12 +382,12 @@ if __name__ == "__main__":
                             else:
                                 print(f"⚠️  {format_name} report file issue")
                 
-                return True
+                assert True
                 
             except Exception as e:
                 print(f"⚠️  End-to-end analysis failed (may be due to missing external tools): {e}")
                 # This is acceptable in a test environment
-                return True
+                assert True
         
     except Exception as e:
         print(f"❌ End-to-end test failed: {e}")
